@@ -7,10 +7,11 @@ import java.nio.file.Files;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.RequestLineUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
-
+    private static final String BASEURL = "./webapp";
     private Socket connection;
 
     public RequestHandler(Socket connectionSocket) {
@@ -26,7 +27,9 @@ public class RequestHandler extends Thread {
             BufferedReader br = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
             String line = br.readLine();
             log.debug("request : {}", line);
-            String[] tokens = line.split(" ");
+
+            String requestUrl = RequestLineUtils.getPath(line);
+            log.debug("요청 URL : {}", requestUrl);
 
             while (!line.equals("")) {
                 line = br.readLine();
@@ -34,8 +37,8 @@ public class RequestHandler extends Thread {
             }
 
             DataOutputStream dos = new DataOutputStream(out);
-//            byte[] body = "Hello World".getBytes();
-            byte[] body = Files.readAllBytes(new File("./webapp" + tokens[1]).toPath());
+            byte[] body = Files.readAllBytes(new File(BASEURL + requestUrl).toPath());
+
             response200Header(dos, body.length);
             responseBody(dos, body);
         } catch (IOException e) {
